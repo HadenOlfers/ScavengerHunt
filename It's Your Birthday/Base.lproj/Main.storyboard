@@ -10,7 +10,7 @@
         <!--Birthday Screen-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController title="Birthday Screen" modalTransitionStyle="crossDissolve" modalPresentationStyle="fullScreen" id="BYZ-38-t0r" customClass="ViewController" customModule="Kate_s_Birthday" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController title="Birthday Screen" modalTransitionStyle="crossDissolve" modalPresentationStyle="fullScreen" id="BYZ-38-t0r" customClass="ViewController" customModule="Kate_s__Birthday" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -93,7 +93,7 @@
         <!--Scavenger Hunt-->
         <scene sceneID="f8H-QP-rc2">
             <objects>
-                <viewController title="Scavenger Hunt" modalTransitionStyle="crossDissolve" modalPresentationStyle="fullScreen" id="nXy-qR-PTf" customClass="ScavengerHuntViewController" customModule="Kate_s_Birthday" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController title="Scavenger Hunt" modalTransitionStyle="crossDissolve" modalPresentationStyle="fullScreen" id="nXy-qR-PTf" customClass="ScavengerHuntViewController" customModule="Kate_s__Birthday" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="DcQ-Vz-P5e">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -380,7 +380,7 @@
                         <outlet property="FinishedMainMenuButton" destination="0XO-Jp-O5B" id="WwT-oZ-xXj"/>
                         <outlet property="FiveLabel" destination="NhU-bf-7ZZ" id="6vP-CY-Tqh"/>
                         <outlet property="FourLabel" destination="UBt-n4-CVJ" id="Jct-kv-az6"/>
-                        <outlet property="MainMenuButton" destination="0XO-Jp-O5B" id="nQU-Yq-059"/>
+                        <outlet property="MainMenuButton" destination="0XO-Jp-O5B" id="Edi-IV-yCP"/>
                         <outlet property="NineLabel" destination="3ZI-d0-J2t" id="Dg6-Jy-hIv"/>
                         <outlet property="OneLabel" destination="8vw-dr-DO7" id="Tjh-I2-xTu"/>
                         <outlet property="PresentEight" destination="JhS-f3-l5y" id="FXG-yq-tMp"/>

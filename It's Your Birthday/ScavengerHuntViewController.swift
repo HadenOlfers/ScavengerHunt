@@ -15,6 +15,7 @@ class ScavengerHuntViewController: UIViewController {
         view.setGradientBackground(colorOne: Color.Purple, colorTwo: Color.Green)
         startingpictures()
         hidepresents()
+        buttonborders()
         BlurEffect.alpha = 0
         FinishedBlurEffect.alpha = 0
         Clue.text = ""
