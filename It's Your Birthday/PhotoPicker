@@ -1,0 +1,142 @@
+import SwiftUI
+import PhotosUI
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var selectedImages: [SelectedImage]
+
+    enum SourceType {
+        case camera
+        case photoLibrary
+    }
+
+    let sourceType: SourceType
+
+    class Coordinator: NSObject, PHPickerViewControllerDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        var parent: ImagePicker
+
+        init(parent: ImagePicker) {
+            self.parent = parent
+        }
+
+        // PHPickerViewControllerDelegate
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            for result in results {
+                if let selectedImage = result.itemProvider.loadObject(ofClass: UIImage.self) as? UIImage,
+                   let date = result.assetIdentifier.flatMap({ PHAsset.fetchAssets(withLocalIdentifiers: [$0], options: nil).firstObject?.creationDate }) {
+                    parent.selectedImages.append(SelectedImage(image: selectedImage, date: date))
+                }
+            }
+
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+
+        // UIImagePickerControllerDelegate
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let selectedImage = info[.originalImage] as? UIImage,
+               let date = info[.creationDate] as? Date {
+                parent.selectedImages.append(SelectedImage(image: selectedImage, date: date))
+            }
+
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+    }
+
+    @Environment(\.presentationMode) var presentationMode
+
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(parent: self)
+    }
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        switch sourceType {
+        case .camera:
+            let picker = UIImagePickerController()
+            picker.sourceType = .camera
+            picker.delegate = context.coordinator
+            return picker
+
+        case .photoLibrary:
+            var configuration = PHPickerConfiguration()
+            configuration.filter = .images
+            configuration.selection = .multiple
+
+            let picker = PHPickerViewController(configuration: configuration)
+            picker.delegate = context.coordinator
+            return picker
+        }
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
+
+struct ContentView: View {
+    @State private var selectedImages: [SelectedImage] = []
+
+    var body: some View {
+        VStack {
+            if !selectedImages.isEmpty {
+                ScrollView(.horizontal) {
+                    HStack {
+                        ForEach(selectedImages, id: \.id) { selectedImage in
+                            VStack {
+                                Image(uiImage: selectedImage.image)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 100, height: 100)
+
+                                Text("\(selectedImage.date, formatter: dateFormatter)")
+                            }
+                        }
+                    }
+                }
+            } else {
+                Text("No Images Selected")
+            }
+
+            HStack {
+                Button("Select Images") {
+                    // Present the image picker for photo library
+                    self.showImagePicker(.photoLibrary)
+                }
+
+                Button("Take Photo") {
+                    // Present the image picker for camera
+                    self.showImagePicker(.camera)
+                }
+            }
+        }
+    }
+
+    @State private var showImagePicker: Bool = false
+    @State private var selectedSourceType: ImagePicker.SourceType = .photoLibrary
+
+    func showImagePicker(_ sourceType: ImagePicker.SourceType) {
+        self.selectedSourceType = sourceType
+        self.showImagePicker.toggle()
+    }
+
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter
+    }
+}
+
+struct SelectedImage: Identifiable {
+    let id = UUID()
+    let image: UIImage
+    let date: Date
+}
+
+extension View {
+    func imagePicker(isPresented: Binding<Bool>, selectedImages: Binding<[SelectedImage]>) -> some View {
+        sheet(isPresented: isPresented) {
+            ImagePicker(selectedImages: selectedImages, sourceType: .photoLibrary)
+        }
+    }
+}
