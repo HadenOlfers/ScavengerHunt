@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import Photos
 
 // Define a custom struct to hold photo information
 struct Photos {
@@ -10,20 +11,23 @@ struct Photos {
     var dateCreated: Date
 }
 
-// Function to convert an array of PhotoPickerItem to an array of Photos
-func convertToPhotos(photoPickerItems: [PhotoPickerItem]) -> [Photos] {
+// Function to convert an array of PhotosPickerItem to an array of Photos
+func convertToPhotos(photosPickerItems: [PhotosPickerItem]) -> [Photos] {
     var photosArray: [Photos] = []
 
-    for photoPickerItem in photoPickerItems {
-        // Access properties of PhotoPickerItem using the imported PhotoUI framework
-        let name = photoPickerItem.identifier
-        let width = photoPickerItem.imageData?.width ?? 0 // Replace with the actual property from PhotoPickerItem
-        let height = photoPickerItem.imageData?.height ?? 0 // Replace with the actual property from PhotoPickerItem
-        let dataSize = photoPickerItem.imageData?.count ?? 0 / 1024 // Convert bytes to kilobytes
-        let dateCreated = photoPickerItem.dateCreated ?? Date()  // Replace with the actual property from PhotoPickerItem
+    for photosPickerItem in photosPickerItems {
+        // Assuming PhotosPickerItem has a PHAsset property
+        guard let phAsset = photosPickerItem.phAsset else {
+            continue
+        }
+
+        let name = photosPickerItem.name // Replace with the actual property from PhotosPickerItem
+        let imageSize = CGSize(width: phAsset.pixelWidth, height: phAsset.pixelHeight)
+        let dataSize = phAsset.pixelWidth * phAsset.pixelHeight * 4 / 1024 // A basic approximation, adjust based on your needs
+        let dateCreated = phAsset.creationDate ?? Date()  // Replace with the actual property from PhotosPickerItem
 
         // Create a Photos instance and append it to the array
-        let photo = Photos(name: name, width: width, height: height, dataSize: dataSize, dateCreated: dateCreated)
+        let photo = Photos(name: name, width: Int(imageSize.width), height: Int(imageSize.height), dataSize: dataSize, dateCreated: dateCreated)
         photosArray.append(photo)
     }
 
@@ -31,7 +35,7 @@ func convertToPhotos(photoPickerItems: [PhotoPickerItem]) -> [Photos] {
 }
 
 // Example usage
-let photoPickerItems: [PhotoPickerItem] = []  // Replace with your actual array of PhotoPickerItem
-let photosArray = convertToPhotos(photoPickerItems: photoPickerItems)
+let photosPickerItems: [PhotosPickerItem] = []  // Replace with your actual array of PhotosPickerItem
+let photosArray = convertToPhotos(photosPickerItems: photosPickerItems)
 
 // Now, photosArray contains an array of Photos structs with the desired properties
