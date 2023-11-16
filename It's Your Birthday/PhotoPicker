@@ -21,24 +21,34 @@ struct ImagePicker: UIViewControllerRepresentable {
         // PHPickerViewControllerDelegate
         func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
             for result in results {
-                if let selectedImage = result.itemProvider.loadObject(ofClass: UIImage.self) as? UIImage,
-                   let date = result.assetIdentifier.flatMap({ PHAsset.fetchAssets(withLocalIdentifiers: [$0], options: nil).firstObject?.creationDate }) {
-                    parent.selectedImages.append(SelectedImage(image: selectedImage, date: date))
-                }
-            }
+                let itemProvider = result.itemProvider
 
-            parent.presentationMode.wrappedValue.dismiss()
+                if itemProvider.canLoadObject(ofClass: UIImage.self) {
+                    itemProvider.loadObject(ofClass: UIImage.self) { (provider, error) in
+                        if let error = error {
+                            print("Error loading image: \(error.localizedDescription)")
+                        } else if let image = provider as? UIImage,
+                          let date = result.assetIdentifier.flatMap({ PHAsset.fetchAssets(withLocalIdentifiers: [$0], options: nil).firstObject?.creationDate }) {
+                            parent.selectedImages.append(SelectedImage(image: image, date: date))
+                        }
+                    }
+            } else {
+            print("Cannot load object of class UIImage.")
         }
+    }
+
+    parent.presentationMode.wrappedValue.dismiss()
+}
 
         // UIImagePickerControllerDelegate
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let selectedImage = info[.originalImage] as? UIImage,
-               let date = info[.creationDate] as? Date {
-                parent.selectedImages.append(SelectedImage(image: selectedImage, date: date))
-            }
+    if let selectedImage = info[.originalImage] as? UIImage,
+        let date = info[.creationDate] as? Date {
+        parent.selectedImages.append(SelectedImage(image: selectedImage, date: date))
+    }
 
-            parent.presentationMode.wrappedValue.dismiss()
-        }
+    parent.presentationMode.wrappedValue.dismiss()
+}
 
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             parent.presentationMode.wrappedValue.dismiss()
@@ -62,7 +72,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         case .photoLibrary:
             var configuration = PHPickerConfiguration()
             configuration.filter = .images
-            configuration.selection = .multiple
+            configuration.selection = .library
 
             let picker = PHPickerViewController(configuration: configuration)
             picker.delegate = context.coordinator
