@@ -42,10 +42,19 @@ struct ImagePicker: UIViewControllerRepresentable {
 
         // UIImagePickerControllerDelegate
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-    if let selectedImage = info[.originalImage] as? UIImage,
-        let date = info[.creationDate] as? Date {
-        parent.selectedImages.append(SelectedImage(image: selectedImage, date: date))
+        if let originalImage = info[.originalImage] as? UIImage,
+        let url = info[.imageURL] as? URL,
+        let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
+        let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any],
+        let creationDate = properties[kCGImagePropertyTIFFDictionary] as? [CFString: Any],
+        let date = creationDate[kCGImagePropertyTIFFDateTime] as? String,
+        let formattedDate = ISO8601DateFormatter().date(from: date) {
+
+        parent.selectedImages.append(SelectedImage(image: originalImage, date: formattedDate))
     }
+
+    parent.presentationMode.wrappedValue.dismiss()
+}
 
     parent.presentationMode.wrappedValue.dismiss()
 }
