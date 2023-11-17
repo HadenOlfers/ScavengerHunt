@@ -1,4 +1,5 @@
 import PhotosUI
+import Photos
 import UIKit
 
 func loadImages(from photoItems: [PhotosPickerItem], completion: @escaping ([UIImage]) -> Void) {
@@ -8,14 +9,24 @@ func loadImages(from photoItems: [PhotosPickerItem], completion: @escaping ([UII
     for photoItem in photoItems {
         dispatchGroup.enter()
 
-        let requestOptions = PHImageRequestOptions()
-        requestOptions.isSynchronous = false
+        if let assetIdentifier = photoItem.itemIdentifier {
+            let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [assetIdentifier], options: nil)
 
-        PHImageManager.default().requestImage(for: photoItem.itemIdentifier, targetSize: PHImageManagerMaximumSize, contentMode: .default, options: requestOptions) { (image, _) in
-            if let image = image {
-                images.append(image)
+            if let asset = fetchResult.firstObject {
+                let requestOptions = PHImageRequestOptions()
+                requestOptions.isSynchronous = false
+
+                PHImageManager.default().requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .default, options: requestOptions) { (image, _) in
+                    if let image = image {
+                        images.append(image)
+                    }
+
+                    dispatchGroup.leave()
+                }
+            } else {
+                dispatchGroup.leave()
             }
-
+        } else {
             dispatchGroup.leave()
         }
     }
