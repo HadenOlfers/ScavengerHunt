@@ -8,18 +8,15 @@ func loadImages(from photoItems: [PhotosPickerItem], completion: @escaping ([UII
     for photoItem in photoItems {
         dispatchGroup.enter()
 
-        photoItem.loadTransferable(type: Data.self) { data, error in
-            defer {
-                dispatchGroup.leave()
+        let requestOptions = PHImageRequestOptions()
+        requestOptions.isSynchronous = false
+
+        PHImageManager.default().requestImage(for: photoItem.itemIdentifier, targetSize: PHImageManagerMaximumSize, contentMode: .default, options: requestOptions) { (image, _) in
+            if let image = image {
+                images.append(image)
             }
 
-            if let error = error {
-                print("Error loading image data: \(error.localizedDescription)")
-            } else if let data = data {
-                if let image = UIImage(data: data) {
-                    images.append(image)
-                }
-            }
+            dispatchGroup.leave()
         }
     }
 
