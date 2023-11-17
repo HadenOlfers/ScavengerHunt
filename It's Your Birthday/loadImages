@@ -1,0 +1,29 @@
+import PhotosUI
+import UIKit
+
+func loadImages(from photoItems: [PhotosPickerItem], completion: @escaping ([UIImage]) -> Void) {
+    var images: [UIImage] = []
+    let dispatchGroup = DispatchGroup()
+
+    for photoItem in photoItems {
+        dispatchGroup.enter()
+
+        photoItem.loadTransferable(type: Data.self) { data, error in
+            defer {
+                dispatchGroup.leave()
+            }
+
+            if let error = error {
+                print("Error loading image data: \(error.localizedDescription)")
+            } else if let data = data {
+                if let image = UIImage(data: data) {
+                    images.append(image)
+                }
+            }
+        }
+    }
+
+    dispatchGroup.notify(queue: DispatchQueue.main) {
+        completion(images)
+    }
+}
