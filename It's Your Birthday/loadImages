@@ -1,3 +1,28 @@
+func loadImage(from photoItem: PhotosPickerItem) -> UIImage? {
+    guard let assetIdentifier = photoItem.itemIdentifier else {
+        return nil
+    }
+
+    let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [assetIdentifier], options: nil)
+
+    guard let asset = fetchResult.firstObject else {
+        return nil
+    }
+
+    let requestOptions = PHImageRequestOptions()
+    requestOptions.isSynchronous = true
+
+    var loadedImage: UIImage?
+
+    PHImageManager.default().requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .default, options: requestOptions) { (image, _) in
+        loadedImage = image
+    }
+
+    return loadedImage
+}
+
+
+/////
 import PhotosUI
 import Photos
 import UIKit
