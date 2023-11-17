@@ -1,41 +1,42 @@
-import SwiftUI
-import PhotosUI
-import Photos
-
-// Define a custom struct to hold photo information
-struct Photos {
-    var name: String
-    var width: Int
-    var height: Int
-    var dataSize: Int // in kilobytes
-    var dateCreated: Date
-}
-
-// Function to convert an array of PhotosPickerItem to an array of Photos
-func convertToPhotos(photosPickerItems: [PhotosPickerItem]) -> [Photos] {
-    var photosArray: [Photos] = []
-
-    for photosPickerItem in photosPickerItems {
-        // Assuming PhotosPickerItem has a PHAsset property
-        guard let phAsset = photosPickerItem.phAsset else {
-            continue
-        }
-
-        let name = photosPickerItem.name // Replace with the actual property from PhotosPickerItem
-        let imageSize = CGSize(width: phAsset.pixelWidth, height: phAsset.pixelHeight)
-        let dataSize = phAsset.pixelWidth * phAsset.pixelHeight * 4 / 1024 // A basic approximation, adjust based on your needs
-        let dateCreated = phAsset.creationDate ?? Date()  // Replace with the actual property from PhotosPickerItem
-
-        // Create a Photos instance and append it to the array
-        let photo = Photos(name: name, width: Int(imageSize.width), height: Int(imageSize.height), dataSize: dataSize, dateCreated: dateCreated)
-        photosArray.append(photo)
+struct PhotoPicker: UIViewControllerRepresentable {
+    @Binding var photoSelection: [PhotosPickerItem]
+    
+    func makeUIViewController(context: Context) -> PHPickerViewController {
+        var configuration = PHPickerConfiguration()
+        configuration.selectionLimit = 0 // Set the limit to 0 for unlimited selections
+        let picker = PHPickerViewController(configuration: configuration)
+        picker.delegate = context.coordinator
+        return picker
     }
-
-    return photosArray
+    
+    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+    
+    class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        let parent: PhotoPicker
+        
+        init(parent: PhotoPicker) {
+            self.parent = parent
+        }
+        
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            parent.photoSelection.removeAll() // Clear previous selection
+            
+            for result in results {
+                result.itemProvider.loadObject(ofClass: UIImage.self) { image, error in
+                    if let error = error {
+                        print("Error loading image: \(error.localizedDescription)")
+                    } else if let image = image as? UIImage {
+                        let photoItem = PhotosPickerItem(displayPhoto: image)
+                        parent.photoSelection.append(photoItem)
+                    }
+                }
+            }
+            
+            parent.isPickerPresented = false // Dismiss picker after selection
+        }
+    }
 }
-
-// Example usage
-let photosPickerItems: [PhotosPickerItem] = []  // Replace with your actual array of PhotosPickerItem
-let photosArray = convertToPhotos(photosPickerItems: photosPickerItems)
-
-// Now, photosArray contains an array of Photos structs with the desired properties
